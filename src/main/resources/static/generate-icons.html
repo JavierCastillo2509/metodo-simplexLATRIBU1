@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Iconos PWA</title>
+</head>
+<body>
+<h1>Generador de Iconos para Simplex PWA</h1>
+<p>Este script generará todos los iconos necesarios. Haz clic en el botón y descarga cada imagen.</p>
+<button onclick="generateAllIcons()">Generar Todos los Iconos</button>
+<div id="output"></div>
+
+<script>
+    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+    function generateIcon(size) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Fondo con gradiente
+        const gradient = ctx.createLinearGradient(0, 0, size, size);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+
+        // Borde redondeado
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2 - 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Texto "S" o símbolo matemático
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${size * 0.5}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('∑', size/2, size/2);
+
+        // Convertir a imagen y descargar
+        canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `icon-${size}x${size}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    function generateAllIcons() {
+        sizes.forEach((size, index) => {
+            setTimeout(() => {
+                generateIcon(size);
+                document.getElementById('output').innerHTML += `<p>✅ Generado: icon-${size}x${size}.png</p>`;
+            }, index * 500);
+        });
+    }
+</script>
+</body>
+</html>

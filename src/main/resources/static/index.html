@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Resuelve problemas de programación lineal usando el Método Simplex con pasos detallados">
+    <meta name="theme-color" content="#667eea">
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Simplex Solver">
+
+    <title>Método Simplex - Solver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .inline-inputs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .inline-inputs > div {
+            flex: 1;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .matrix-input {
+            margin: 20px 0;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .matrix-table td {
+            padding: 8px;
+        }
+
+        .matrix-table input {
+            width: 80px;
+            padding: 8px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .matrix-table select {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .result-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .solution-values {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .solution-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .iteration {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .iteration h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .tableau-container {
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .tableau {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        .tableau td, .tableau th {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .tableau th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .tableau .pivot {
+            background: #ffe066;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* PWA Install Button */
+        .install-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .install-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+
+        .install-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Offline Indicator */
+        .offline-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f5576c;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            z-index: 2000;
+            display: none;
+        }
+
+        .offline-indicator.show {
+            display: block;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<!-- Offline Indicator -->
+<div id="offlineIndicator" class="offline-indicator">
+    📡 Sin conexión - Modo offline
+</div>
+
+<!-- PWA Install Button -->
+<div id="installContainer" class="install-container hidden">
+    <button id="installBtn" class="install-btn">
+        📲 Instalar App
+    </button>
+</div>
+<div class="container">
+    <h1>🔢 Método Simplex</h1>
+    <p class="subtitle">Resuelve problemas de programación lineal con pasos detallados</p>
+
+    <div class="input-section">
+        <div class="form-group">
+            <label>Tipo de Optimización:</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="optimization" value="max" checked>
+                    Maximizar
+                </label>
+                <label>
+                    <input type="radio" name="optimization" value="min">
+                    Minimizar
+                </label>
+            </div>
+        </div>
+
+        <div class="inline-inputs">
+            <div class="form-group">
+                <label>Número de Variables (n):</label>
+                <input type="number" id="numVars" min="2" max="10" value="2">
+            </div>
+            <div class="form-group">
+                <label>Número de Restricciones (m):</label>
+                <input type="number" id="numConstraints" min="1" max="10" value="2">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="btn" onclick="generateInputs()">Generar Campos</button>
+        </div>
+    </div>
+
+    <div id="problemInputs" class="hidden">
+        <div class="input-section">
+            <h3>Función Objetivo</h3>
+            <div id="objectiveFunction"></div>
+
+            <h3 style="margin-top: 20px;">Restricciones</h3>
+            <div id="constraintsInput"></div>
+
+            <div class="button-group">
+                <button type="button" class="btn" onclick="solveSimplex()">Resolver</button>
+		<button type="button" class="btn btn-secondary" onclick="fillExample()">Ejemplo</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="results" class="results hidden"></div>
+</div>
+
+<script>
+    const API_URL = window.location.origin + '/api/simplex/solve';
+    let deferredPrompt;
+
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('✅ Service Worker registrado:', registration);
+                })
+                .catch(error => {
+                    console.error('❌ Error al registrar Service Worker:', error);
+                });
+        });
+    }
+
+    // Detectar evento de instalación PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('🎯 beforeinstallprompt disparado');
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('installContainer').classList.remove('hidden');
+        console.log('✅ Botón de instalación mostrado');
+    });
+
+    // Manejar clic en botón de instalación
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            console.log('🖱️ Clic en botón de instalación');
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Usuario ${outcome === 'accepted' ? 'aceptó ✅' : 'rechazó ❌'} la instalación`);
+                deferredPrompt = null;
+                document.getElementById('installContainer').classList.add('hidden');
+            } else {
+                console.warn('⚠️ deferredPrompt no está disponible');
+            }
+        });
+    }
+
+    // Detectar cuando la app es instalada
+    window.addEventListener('appinstalled', () => {
+        console.log('🎉 PWA instalada exitosamente');
+        document.getElementById('installContainer').classList.add('hidden');
+    });
+
+    // Detectar conexión online/offline
+    window.addEventListener('online', () => {
+        console.log('🌐 Conexión restaurada');
+        document.getElementById('offlineIndicator').classList.remove('show');
+    });
+
+    window.addEventListener('offline', () => {
+        console.log('📡 Sin conexión');
+        document.getElementById('offlineIndicator').classList.add('show');
+    });
+
+    // Verificar si ya está instalada
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('✅ App ya instalada y ejecutándose en modo standalone');
+    } else {
+        console.log('ℹ️ App ejecutándose en navegador');
+    }
+
+    function generateInputs() {
+        const numVars = parseInt(document.getElementById('numVars').value);
+        const numConstraints = parseInt(document.getElementById('numConstraints').value);
+
+        // Función objetivo
+        let objHtml = '<table class="matrix-table"><tr>';
+        for (let i = 0; i < numVars; i++) {
+            objHtml += `<td><input type="number" id="obj${i}" value="0" step="0.1"> x${i+1}</td>`;
+            if (i < numVars - 1) objHtml += '<td>+</td>';
+        }
+        objHtml += '</tr></table>';
+        document.getElementById('objectiveFunction').innerHTML = objHtml;
+
+        // Restricciones
+        let constHtml = '<table class="matrix-table">';
+        for (let i = 0; i < numConstraints; i++) {
+            constHtml += '<tr>';
+            for (let j = 0; j < numVars; j++) {
+                constHtml += `<td><input type="number" id="c${i}_${j}" value="0" step="0.1"> x${j+1}</td>`;
+                if (j < numVars - 1) constHtml += '<td>+</td>';
+            }
+            constHtml += `<td>
+                <select id="ineq${i}">
+                    <option value="<=">≤</option>
+                    <option value=">=">≥</option>
+                    <option value="=">=</option>
+                </select>
+            </td>`;
+            constHtml += `<td><input type="number" id="rhs${i}" value="0" step="0.1"></td>`;
+            constHtml += '</tr>';
+        }
+        constHtml += '</table>';
+        document.getElementById('constraintsInput').innerHTML = constHtml;
+
+        document.getElementById('problemInputs').classList.remove('hidden');
+    }
+
+    function fillExample() {
+        // Ejemplo: Maximizar Z = 3x1 + 5x2
+        // s.a: x1 <= 4, 2x2 <= 12, 3x1 + 2x2 <= 18
+        document.getElementById('numVars').value = 2;
+        document.getElementById('numConstraints').value = 3;
+        generateInputs();
+
+        document.getElementById('obj0').value = 3;
+        document.getElementById('obj1').value = 5;
+
+        document.getElementById('c0_0').value = 1;
+        document.getElementById('c0_1').value = 0;
+        document.getElementById('rhs0').value = 4;
+
+        document.getElementById('c1_0').value = 0;
+        document.getElementById('c1_1').value = 2;
+        document.getElementById('rhs1').value = 12;
+
+        document.getElementById('c2_0').value = 3;
+        document.getElementById('c2_1').value = 2;
+        document.getElementById('rhs2').value = 18;
+    }
+
+async function solveSimplex() {
+    const numVars = parseInt(document.getElementById('numVars').value);
+    const numConstraints = parseInt(document.getElementById('numConstraints').value);
+    const isMax = document.querySelector('input[name="optimization"]:checked').value === 'max';
+
+    // Recopilar función objetivo
+    const objective = [];
+    for (let i = 0; i < numVars; i++) {
+        objective.push(parseFloat(document.getElementById(`obj${i}`).value) || 0);
+    }
+
+    // Recopilar restricciones
+    const constraints = [];
+    const rhsValues = [];
+    const inequalityTypes = [];
+
+    for (let i = 0; i < numConstraints; i++) {
+        const row = [];
+        for (let j = 0; j < numVars; j++) {
+            row.push(parseFloat(document.getElementById(`c${i}_${j}`).value) || 0);
+        }
+        constraints.push(row);
+        rhsValues.push(parseFloat(document.getElementById(`rhs${i}`).value) || 0);
+        inequalityTypes.push(document.getElementById(`ineq${i}`).value);
+    }
+
+    // 👉 Resolver directamente en el navegador
+    const data = simplexSolve(objective, constraints, rhsValues, inequalityTypes, isMax);
+    displayResults(data, numVars);
+}
+
+function simplexSolve(objective, constraints, rhsValues, inequalityTypes, isMax) {
+    // Convertir a forma estándar
+    const numVars = objective.length;
+    const numConstraints = constraints.length;
+
+    // Construir tabla inicial (simplex estándar)
+    let tableau = [];
+    for (let i = 0; i < numConstraints; i++) {
+        let row = [...constraints[i]];
+        for (let j = 0; j < numConstraints; j++) row.push(i === j ? 1 : 0); // variables de holgura
+        row.push(rhsValues[i]);
+        tableau.push(row);
+    }
+
+   // Fila Z
+let zRow = objective.map(c => isMax ? -c : c); // coeficientes de la función objetivo
+for (let i = 0; i < numConstraints; i++) zRow.push(0); // variables de holgura
+zRow.push(0); // término independiente (RHS)
+tableau.push(zRow);
+
+
+    let basicVariables = Array.from({ length: numConstraints }, (_, i) => `s${i+1}`);
+    let iterations = [];
+    let iterCount = 0;
+
+    // Simplex básico
+    while (true) {
+        iterCount++;
+        const lastRow = tableau[tableau.length - 1];
+        const pivotCol = lastRow.slice(0, numVars + numConstraints).reduce((minIdx, val, idx, arr) =>
+            val < arr[minIdx] ? idx : minIdx, 0);
+
+        if (lastRow[pivotCol] >= 0) break; // óptimo alcanzado
+
+        // Determinar fila pivote
+        let ratios = tableau
+            .slice(0, numConstraints)
+            .map(r => r[r.length - 1] / r[pivotCol]);
+        let validRatios = ratios.filter(r => r > 0);
+        if (validRatios.length === 0) break; // sin solución
+
+        const pivotRow = ratios.indexOf(Math.min(...validRatios));
+        const pivotVal = tableau[pivotRow][pivotCol];
+
+        // Normalizar fila pivote
+        tableau[pivotRow] = tableau[pivotRow].map(v => v / pivotVal);
+
+        // Reducir otras filas
+        for (let i = 0; i < tableau.length; i++) {
+            if (i !== pivotRow) {
+                const factor = tableau[i][pivotCol];
+                tableau[i] = tableau[i].map((v, j) => v - factor * tableau[pivotRow][j]);
+            }
+        }
+
+        basicVariables[pivotRow] = `x${pivotCol + 1}`;
+
+        iterations.push({
+            description: `Iteración ${iterCount}`,
+            tableau: JSON.parse(JSON.stringify(tableau)),
+            basicVariables: [...basicVariables],
+            pivotRow,
+            pivotColumn: pivotCol
+        });
+    }
+
+    // Obtener resultados
+    const solution = Array(numVars).fill(0);
+    for (let i = 0; i < basicVariables.length; i++) {
+        const name = basicVariables[i];
+        if (name.startsWith('x')) {
+            const idx = parseInt(name.substring(1)) - 1;
+            solution[idx] = tableau[i][tableau[i].length - 1];
+        }
+    }
+
+    const optimalValue = tableau[tableau.length - 1][tableau[0].length - 1];
+
+    return {
+        feasible: true,
+        message: 'Solución óptima encontrada',
+        optimalValue: isMax ? optimalValue : -optimalValue,
+        solution,
+        iterations
+    };
+}
+
+
+    function displayResults(data, numVars) {
+        const resultsDiv = document.getElementById('results');
+        let html = '';
+
+        if (!data.feasible) {
+            html = `<div class="alert alert-error">${data.message}</div>`;
+        } else {
+            html = `
+                <div class="result-card">
+                    <h3>✅ ${data.message}</h3>
+                    <div style="font-size: 1.2em; margin-top: 10px;">
+                        <strong>Valor Óptimo: ${data.optimalValue.toFixed(4)}</strong>
+                    </div>
+                    <div class="solution-values">
+                        ${data.solution.map((val, idx) => `
+                            <div class="solution-item">
+                                <strong>x${idx+1}</strong><br>
+                                ${val.toFixed(4)}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Mostrar iteraciones
+            html += '<h2 style="color: #667eea; margin: 30px 0 20px 0;">📊 Iteraciones del Método Simplex</h2>';
+
+            data.iterations.forEach(iter => {
+                html += `
+                    <div class="iteration">
+                        <h4>${iter.description}</h4>
+                        <p><strong>Variables Básicas:</strong> ${iter.basicVariables.join(', ')}</p>
+                        <div class="tableau-container">
+                            <table class="tableau">
+                                <thead>
+                                    <tr>
+                                        <th>Base</th>
+                                        ${Array.from({length: iter.tableau[0].length - 1}, (_, i) =>
+                                            i < numVars ? `<th>x${i+1}</th>` : `<th>s${i-numVars+1}</th>`
+                                        ).join('')}
+                                        <th>RHS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${iter.tableau.map((row, rowIdx) => {
+                                        if (rowIdx === iter.tableau.length - 1) {
+                                            return `<tr>
+                                                <th>Z</th>
+                                                ${row.map((val, colIdx) => {
+                                                    const isPivot = rowIdx === iter.pivotRow && colIdx === iter.pivotColumn;
+                                                    return `<td class="${isPivot ? 'pivot' : ''}">${val.toFixed(4)}</td>`;
+                                                }).join('')}
+                                            </tr>`;
+                                        } else {
+                                            return `<tr>
+                                                <th>${iter.basicVariables[rowIdx]}</th>
+                                                ${row.map((val, colIdx) => {
+                                                    const isPivot = rowIdx === iter.pivotRow && colIdx === iter.pivotColumn;
+                                                    return `<td class="${isPivot ? 'pivot' : ''}">${val.toFixed(4)}</td>`;
+                                                }).join('')}
+                                            </tr>`;
+                                        }
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        resultsDiv.innerHTML = html;
+        resultsDiv.classList.remove('hidden');
+        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Generar campos al cargar la página
+    window.onload = function() {
+        generateInputs();
+    };
+</script>
+</body>
+</html>
